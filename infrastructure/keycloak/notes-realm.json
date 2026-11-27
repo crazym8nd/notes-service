@@ -1,0 +1,62 @@
+{
+  "realm": "notes",
+  "enabled": true,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      {
+        "name": "notes-reader",
+        "description": "Чтение заметок"
+      },
+      {
+        "name": "notes-writer",
+        "description": "Создание, изменение и удаление заметок"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "notes-cli",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "webOrigins": ["+"]
+    }
+  ],
+  "users": [
+    {
+      "username": "demo",
+      "enabled": true,
+      "email": "demo@example.com",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["notes-reader", "notes-writer"]
+    },
+    {
+      "username": "readonly",
+      "enabled": true,
+      "email": "readonly@example.com",
+      "emailVerified": true,
+      "firstName": "Read",
+      "lastName": "Only",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "readonly",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["notes-reader"]
+    }
+  ]
+}
