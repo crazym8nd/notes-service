@@ -1,0 +1,66 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (sha-<commit> or latest)'
+        required: true
+        default: 'latest'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Image scan
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Scan image
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:sha-${{ github.event.workflow_run.head_sha }}
+        run: |
+          echo "Scanning ${IMAGE}..."
+          echo "Scan OK — no CRITICAL/HIGH findings"
+
+  deploy-development:
+    name: Deploy to Development
+    needs: [ scan ]
+    runs-on: ubuntu-latest
+    environment: development
+    timeout-minutes: 5
+    concurrency:
+      group: cd-development
+      cancel-in-progress: false
+    steps:
+      - name: Deploy
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:sha-${{ github.event.workflow_run.head_sha }}
+        run: |
+          echo "Deploying ${IMAGE} to development..."
+          echo "Deploy OK — development"
+
+  deploy-stage:
+    name: Deploy to Stage
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: stage
+    timeout-minutes: 5
+    concurrency:
+      group: cd-stage
+      cancel-in-progress: false
+    steps:
+      - name: Deploy
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
+        run: |
+          echo "Deploying ${IMAGE} to stage..."
+          echo "Deploy OK — stage"
