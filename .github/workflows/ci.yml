@@ -24,13 +24,13 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Hadolint (Dockerfile)
-        run: echo "Hadolint: OK"
+        run: echo "Hadolint OK"
 
       - name: Validate docker-compose
-        run: echo "docker compose config: OK"
+        run: echo "docker compose config OK"
 
       - name: Check conventions
-        run: echo "Conventional Commits, naming, comments: OK"
+        run: echo "Conventional Commits, naming, comments OK"
 
   build:
     name: Build
