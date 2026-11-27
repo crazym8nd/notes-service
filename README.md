@@ -116,9 +116,9 @@ curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/notes
 ## Тестирование
 
 `make test` прогоняет все уровни: unit (Mockito) → web-срез (MockMvc + security-цепочка) →
-E2E через HTTP с реальным Keycloak в Testcontainers — на каждый эндпоинт контракта
-сценарий и ошибка. Тела запросов — JSON-фикстуры `fixtures/`, данные E2E — SQL-фикстура
-`@Sql`. Покрытие — JaCoCo (line ≥ 60%, unit и E2E суммарно), отчёт — артефакт CI.
+интеграционные через HTTP с реальным Keycloak в Testcontainers — на каждый эндпоинт
+контракта сценарий и ошибка. Тела запросов — JSON-фикстуры `fixtures/`, данные интеграционных — SQL-фикстура
+`@Sql`. Покрытие — JaCoCo (line ≥ 60%, unit и интеграционные суммарно), отчёт — артефакт CI.
 
 ## CI/CD
 
