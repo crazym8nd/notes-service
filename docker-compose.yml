@@ -33,6 +33,7 @@ services:
       retries: 12
       start_period: 30s
     stop_grace_period: 30s
+    user: "10001:10001"
     cap_drop: [ALL]
     security_opt: ["no-new-privileges"]
     read_only: true

@@ -16,10 +16,10 @@ COPY openapi ./openapi
 RUN --mount=type=cache,target=/root/.m2 mvn -q -B package -Dmaven.test.skip=true
 
 FROM ${RUNTIME_IMAGE}
-RUN addgroup -S app && adduser -S app -G app
+RUN addgroup -S -g 10001 app && adduser -S -u 10001 -G app app
 WORKDIR /app
 
-COPY --from=build /workspace/target/notes-service-*.jar app.jar
+COPY --from=build --chown=app:app /workspace/target/notes-service-*.jar app.jar
 
 USER app
 EXPOSE 8080
