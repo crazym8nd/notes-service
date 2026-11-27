@@ -1,0 +1,31 @@
+@startuml component
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Notes Service — компоненты
+
+Container_Boundary(api, "Notes REST API") {
+    Component(apiInterface, "NotesApi", "генерат из OpenAPI", "HTTP-контракт: методы и DTO")
+    Component(controller, "NotesController", "Spring MVC", "транспорт: коды ответов, Location")
+    Component(requestMapper, "NoteRequestMapper", "MapStruct", "request DTO -> NoteDraft")
+    Component(responseMapper, "NoteResponseMapper", "MapStruct", "Note -> NoteResponseDto")
+    Component(service, "NoteService", "интерфейс + impl", "правила и нормализация (NoteNormalizer)")
+    Component(security, "SecurityConfig + JwtRealmRolesConverter", "Spring Security", "Bearer JWT -> realm-роли")
+    Component(advice, "GlobalExceptionHandler", "@RestControllerAdvice", "исключения -> RFC 7807")
+    Component(repo, "NoteRepository", "интерфейс-порт", "говорит на языке домена")
+    Component(repoImpl, "JpaNoteRepository", "@Repository", "адаптер над Spring Data")
+    Component(entity, "NoteEntity + NoteJpaRepository", "JPA", "схема из Flyway, @CreatedDate")
+}
+
+System_Ext(keycloak, "Keycloak", "IdP")
+
+Rel(controller, apiInterface, "implements")
+Rel(controller, requestMapper, "запрос -> draft")
+Rel(controller, responseMapper, "домен -> ответ")
+Rel(controller, service, "create / get / list / listByTag / update / delete")
+Rel(service, repo, "DIP")
+Rel(repoImpl, repo, "реализует")
+Rel(security, keycloak, "JWKS")
+Rel(service, advice, "NoteNotFoundException -> 404")
+@enduml

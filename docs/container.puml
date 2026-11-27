@@ -1,0 +1,20 @@
+@startuml container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Notes Service — контейнеры
+
+Person(user, "Пользователь", "REST-клиент: curl, Swagger UI")
+
+System_Boundary(notesBoundary, "notes-service") {
+    Container(api, "Notes REST API", "Spring Boot 3.5, Java 17", "REST, security, маппинг, ошибки — по OpenAPI-контракту")
+    ContainerDb(store, "H2 (in-memory)", "Spring Data JPA + Flyway", "заметки и теги; схема — миграция V1")
+}
+
+System_Ext(keycloak, "Keycloak 26", "realm notes")
+
+Rel(user, api, "/api/v1/notes, Bearer JWT", "HTTPS")
+Rel(api, store, "через порт NoteRepository", "JPA")
+Rel(api, keycloak, "JWKS для проверки подписи", "HTTPS")
+@enduml

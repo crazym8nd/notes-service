@@ -1,0 +1,16 @@
+@startuml context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Notes Service — контекст
+
+Person(user, "Пользователь", "работает с заметками через REST API")
+
+System(notes, "Notes Service", "CRUD заметок, фильтр по тегу, H2 + Flyway")
+
+System_Ext(keycloak, "Keycloak", "realm notes: выпускает JWT, хранит пользователей и роли")
+
+Rel(user, notes, "/api/v1/notes, Bearer JWT", "HTTPS")
+Rel(notes, keycloak, "проверяет JWT по issuer и JWKS", "HTTPS")
+@enduml
