@@ -1,0 +1,273 @@
+openapi: 3.0.3
+info:
+  title: Notes Service API
+  version: 1.0.0
+  description: |
+    CRUD заметок (title, content, createdAt, tags) и фильтр по тегу.
+    JWT от Keycloak (realm `notes`): `notes-reader` — чтение, `notes-writer` — мутации.
+    Ошибки — RFC 7807 (application/problem+json).
+servers:
+  - url: http://localhost:8080
+    description: Локальный запуск
+security:
+  - bearerAuth: []
+tags:
+  - name: Notes
+    description: Операции с заметками
+paths:
+  /api/v1/notes:
+    get:
+      tags:
+        - Notes
+      operationId: listNotes
+      summary: Список заметок с опциональным фильтром по тегу
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          description: точное совпадение без учёта регистра
+          schema:
+            type: string
+            maxLength: 50
+      responses:
+        '200':
+          description: пустой массив, если ничего не найдено
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoteResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Notes
+      operationId: createNote
+      summary: Создать заметку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteCreateRequestDto'
+      responses:
+        '201':
+          description: заметка создана; Location — URL ресурса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/notes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Notes
+      operationId: getNote
+      summary: Получить заметку по идентификатору
+      responses:
+        '200':
+          description: Заметка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResponseDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+        - Notes
+      operationId: updateNote
+      summary: Заменить заметку целиком
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteUpdateRequestDto'
+      responses:
+        '200':
+          description: обновлённая заметка; createdAt не меняется
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags:
+        - Notes
+      operationId: deleteNote
+      summary: Удалить заметку
+      responses:
+        '204':
+          description: удалено; повторный запрос даст 404
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: запрос не прошёл валидацию
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDto'
+    Unauthorized:
+      description: Токен отсутствует, истёк или невалиден
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDto'
+    Forbidden:
+      description: нет роли notes-writer
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDto'
+    NotFound:
+      description: Заметка с указанным id не найдена
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDto'
+  schemas:
+    NoteCreateRequestDto:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: '^\S[\s\S]*$'
+          description: не пустой, 1–200 символов; края обрезаются
+        content:
+          type: string
+          maxLength: 10000
+          default: ''
+          description: Текст заметки
+        tags:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          description: нижний регистр, дубликаты отбрасываются
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+    NoteUpdateRequestDto:
+      type: object
+      description: замена целиком
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: '^\S[\s\S]*$'
+          description: не пустой, 1–200 символов; края обрезаются
+        content:
+          type: string
+          maxLength: 10000
+          default: ''
+          description: Новый текст заметки
+        tags:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          description: нижний регистр, дубликаты отбрасываются
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+    NoteResponseDto:
+      type: object
+      description: Заметка
+      required:
+        - id
+        - title
+        - createdAt
+        - tags
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+          maxLength: 10000
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description: UTC; не меняется при обновлении
+        tags:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+    ProblemDto:
+      type: object
+      description: RFC 7807
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI типа проблемы
+        title:
+          type: string
+          description: краткий заголовок ошибки
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+          description: текст ошибки
+        instance:
+          type: string
+          format: uri-reference
+          description: путь запроса
