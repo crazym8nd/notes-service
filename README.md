@@ -126,7 +126,7 @@ curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/notes
 `mvn verify`, JaCoCo-отчёт в артефактах) → сборка docker-образа; на `main` образ уходит
 в GHCR с тегами `sha-<commit>` и `latest`. Тесты выполняются один раз; образ собирается
 без тестов и публикуется с неизменяемым `sha-`тегом — все последующие этапы используют
-ровно этот артефакт. Action'ы запинены по SHA, устаревшие прогоны отменяются через
+ровно этот артефакт. Action'ы закреплены по SHA, устаревшие прогоны отменяются через
 `concurrency`, permissions минимальные.
 
 **CD** ([.github/workflows/cd.yml](.github/workflows/cd.yml)): после успешного CI на `main` —
